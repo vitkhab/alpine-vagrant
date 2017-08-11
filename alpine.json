@@ -1,0 +1,80 @@
+{
+  "description": "Alpine base image",
+  "variables": {
+    "product_name": "alpine",
+    "product_version": "3.6.2",
+
+    "iso_url": "http://nl.alpinelinux.org/alpine/v3.6/releases/x86_64/alpine-virt-3.6.2-x86_64.iso",
+    "iso_checksum": "92c80e151143da155fb99611ed8f0f3672fba4de228a85eb5f53bcb261bf4b0a",
+    "iso_checksum_type": "sha256",
+  
+    "disk_size": "4096",
+    "memory": "512",
+    "cpus": "1"
+  },
+  "builders": [
+    {
+      "type": "parallels-iso",
+      "prlctl_version_file": ".prlctl_version",
+
+      "guest_os_type": "linux-2.6",
+      "disk_size": "{{user `disk_size`}}",
+      "http_directory": "http",
+
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+
+      "communicator": "ssh",
+      "ssh_port": 22,
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "10m",
+      "shutdown_command": "/sbin/poweroff",
+
+      "boot_wait": "30s",
+      "boot_command": [
+        "root<enter><wait>",
+        "ifconfig eth0 up && udhcpc -i eth0<enter><wait10>",
+        "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answers<enter><wait>",
+        "setup-alpine -f answers<enter><wait5>",
+        "vagrant<enter><wait>",
+        "vagrant<enter><wait>",
+        "<wait10><wait10><wait10>",
+        "y<enter>",
+        "<wait10><wait10><wait10>",
+        "rc-service sshd stop<enter>",
+        "mount /dev/sda3 /mnt<enter>",
+        "echo 'PermitRootLogin yes' >> /mnt/etc/ssh/sshd_config<enter>",
+        "umount /mnt<enter>",
+        "reboot<enter>"
+      ],
+
+      "vm_name": "{{user `product_name`}}-{{user `product_version`}}",
+      "output_directory": "packer-{{user `product_name`}}-{{user `product_version`}}-parallels",
+      "parallels_tools_mode": "disable",
+      "prlctl": [
+        [ "set", "{{.Name}}", "--cpus", "{{ user `cpus` }}" ],
+        [ "set", "{{.Name}}", "--memsize", "{{ user `memory` }}" ]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/00base.sh",
+        "scripts/02sshd.sh",
+        "scripts/03vagrant.sh",
+        "scripts/04sudoers.sh",
+        "scripts/99minimize.sh"
+      ]
+    }
+  ],
+  "post-processors": [
+    [{
+      "type": "vagrant",
+      "keep_input_artifact": true
+    }]
+  ]
+}
