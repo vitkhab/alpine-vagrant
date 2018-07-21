@@ -1,6 +1,8 @@
 {
   "description": "Alpine base image",
   "variables": {
+    "cloud_token": "{{ env `ATLAS_TOKEN` }}",
+
     "product_name": "alpine",
     "product_version": "3.8.0",
 
@@ -72,9 +74,17 @@
     }
   ],
   "post-processors": [
-    [{
-      "type": "vagrant",
-      "keep_input_artifact": true
-    }]
+    [
+      {
+        "type": "vagrant",
+        "output": "{{ user `product_name` }}-{{ user `product_version` }}-{{.Provider}}.box"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "vitkhab/{{ user `product_name` }}",
+        "access_token": "{{ user `cloud_token` }}",
+        "version": "{{ user `product_version` }}"
+      }
+    ]
   ]
 }
