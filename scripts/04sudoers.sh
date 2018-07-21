@@ -1,6 +1,6 @@
 set -eux
 
-apk add sudo
+apk add --no-cache sudo
 adduser vagrant wheel
 
 echo "Defaults exempt_group=wheel" > /etc/sudoers

@@ -12,7 +12,7 @@ date > /etc/vagrant_box_build_time
 # cURL for initial vagrant key install from vagrant github repo.
 #   on first 'vagrant up', overwritten with a local, secure key.
 #
-apk add bash curl
+apk add --no-cache bash curl
 
 adduser -D vagrant
 echo "vagrant:vagrant" | chpasswd
